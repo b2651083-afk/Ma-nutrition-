@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Ma Nutrition" />
+  <meta name="theme-color" content="#2d6a4f" />
+  <title>Ma Nutrition</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg: #f7f4ef;
+      --card: #ffffff;
+      --border: #e8e2d9;
+      --ink: #1a1612;
+      --muted: #9a9080;
+      --accent: #2d6a4f;
+      --accent-light: #d8f3dc;
+      --warn: #e76f51;
+      --warn-light: #fde8e1;
+      --gold: #c9a84c;
+      --gold-light: #fef9ec;
+    }
+
+    body {
+      font-family: Georgia, serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* NAV */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--card); border-bottom: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 16px; box-shadow: 0 2px 12px #0000000a;
+    }
+    .navbar-logo { display: flex; align-items: center; gap: 8px; }
+    .navbar-logo span { font-weight: 700; font-size: 16px; color: var(--ink); }
+    .navbar-btns { display: flex; gap: 6px; }
+    .btn-nav {
+      background: transparent; color: var(--muted);
+      border: 1.5px solid transparent; border-radius: 10px;
+      padding: 7px 12px; cursor: pointer; font-size: 13px;
+      font-family: Georgia, serif; font-weight: 700; transition: all .2s;
+    }
+    .btn-nav.active {
+      background: var(--accent-light); color: var(--accent);
+      border-color: #2d6a4f44;
+    }
+    .btn-add {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 10px; padding: 7px 13px; cursor: pointer;
+      font-size: 13px; font-family: Georgia, serif; font-weight: 700;
+    }
+
+    /* PAGES */
+    .page { display: none; max-width: 680px; margin: 0 auto; padding: 18px 14px; }
+    .page.active { display: block; }
+
+    /* CARDS */
+    .card {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 14px; overflow: hidden; margin-bottom: 12px;
+    }
+    .card-header {
+      background: linear-gradient(135deg, var(--accent-light), var(--gold-light));
+      padding: 16px 18px; border-bottom: 1.5px solid var(--border);
+    }
+
+    /* FORM */
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-label {
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .8px;
+    }
+    .form-input, .form-select {
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 8px; padding: 10px 12px; font-size: 14px;
+      color: var(--ink); font-family: Georgia, serif; outline: none; width: 100%;
+    }
+    .form-input:focus, .form-select:focus { border-color: var(--accent); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+
+    /* BUTTONS */
+    .btn-primary {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 10px; padding: 13px; cursor: pointer;
+      font-size: 15px; font-family: Georgia, serif; font-weight: 700;
+      width: 100%; transition: opacity .2s;
+    }
+    .btn-primary:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+    .btn-secondary {
+      background: transparent; color: var(--muted);
+      border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 13px 18px; cursor: pointer; font-size: 14px;
+      font-family: Georgia, serif;
+    }
+    .btn-icon {
+      border-radius: 9px; padding: 7px 12px; cursor: pointer;
+      font-size: 13px; font-family: Georgia, serif; font-weight: 700; border: 1.5px solid;
+    }
+    .btn-edit { background: #fff; color: var(--ink); border-color: var(--border); }
+    .btn-delete { background: var(--warn-light); color: var(--warn); border-color: #e76f5144; }
+    .btn-menu { background: var(--accent-light); color: var(--accent); border-color: #2d6a4f44; white-space: nowrap; font-size: 12px; }
+
+    /* TAGS */
+    .tag {
+      display: inline-block; border-radius: 20px; padding: 2px 10px;
+      font-size: 11px; font-weight: 700; letter-spacing: .5px;
+      background: #52796f18; color: #52796f; border: 1px solid #52796f33;
+    }
+    .tag-gold { background: #c9a84c18; color: var(--gold); border-color: #c9a84c33; }
+
+    /* FOOD ITEM */
+    .food-item {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 13px; padding: 13px 14px; margin-bottom: 9px;
+      display: flex; align-items: center; gap: 12px; cursor: pointer;
+      transition: box-shadow .2s;
+    }
+    .food-item:active { box-shadow: 0 4px 20px #0000001a; }
+    .food-name { font-weight: 700; font-size: 14px; color: var(--ink); }
+    .food-brand { font-size: 12px; color: var(--muted); }
+    .food-macros { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+    .macro-val { font-size: 11px; }
+
+    /* MACRO BARS */
+    .macro-bar { margin-bottom: 10px; }
+    .macro-bar-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .macro-bar-label { font-size: 12px; font-weight: 700; color: var(--ink); }
+    .macro-bar-val { font-size: 12px; color: var(--muted); }
+    .macro-bar-track { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .macro-bar-fill { height: 100%; border-radius: 99px; transition: width .4s ease; }
+
+    /* MACRO GRID */
+    .macro-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; margin-bottom: 16px; }
+    .macro-card {
+      background: var(--bg); border-radius: 10px; padding: 11px 12px;
+      border-bottom: 3px solid;
+    }
+    .macro-card-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; margin-bottom: 3px; }
+    .macro-card-val { font-size: 18px; font-weight: 700; }
+    .macro-card-unit { font-size: 10px; color: var(--muted); margin-left: 2px; }
+
+    /* STATS */
+    .stats-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .stat-card {
+      flex: 1; background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 10px 12px; text-align: center;
+    }
+    .stat-icon { font-size: 16px; }
+    .stat-val { font-size: 18px; font-weight: 700; color: var(--ink); }
+    .stat-label { font-size: 10px; color: var(--muted); }
+
+    /* FILTERS */
+    .filter-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 16px; }
+    .filter-btn {
+      background: var(--card); color: var(--muted);
+      border: 1.5px solid var(--border); border-radius: 20px;
+      padding: 4px 11px; cursor: pointer; font-size: 12px;
+      font-family: Georgia, serif; transition: all .15s;
+    }
+    .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* SEARCH */
+    .search-input {
+      width: 100%; background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 10px 13px; font-size: 14px;
+      color: var(--ink); font-family: Georgia, serif; outline: none;
+      margin-bottom: 12px;
+    }
+    .search-input:focus { border-color: var(--accent); }
+
+    /* MENU ITEM */
+    .menu-item {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 13px; padding: 12px 14px; margin-bottom: 9px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .menu-qty {
+      width: 54px; background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 8px; color: var(--ink); padding: 6px 7px;
+      font-size: 13px; font-family: Georgia, serif; text-align: center;
+    }
+
+    /* ALERTS */
+    .alert-success {
+      background: var(--accent-light); border: 1.5px solid #2d6a4f44;
+      border-radius: 10px; padding: 10px 16px; color: var(--accent);
+      font-weight: 700; font-size: 13px; margin-bottom: 14px; text-align: center;
+    }
+
+    /* EMPTY STATE */
+    .empty { text-align: center; padding: 50px 20px; color: var(--muted); }
+    .empty-icon { font-size: 44px; margin-bottom: 10px; }
+    .empty-title { font-size: 15px; color: var(--ink); margin-bottom: 6px; }
+    .empty-sub { font-size: 12px; margin-bottom: 18px; }
+
+    /* DIVIDER */
+    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+    /* SECTION TITLE */
+    .section-title {
+      font-size: 11px; font-weight: 700; color: var(--accent);
+      text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;
+    }
+
+    /* PREVIEW */
+    .preview-box {
+      background: var(--bg); border-radius: 10px; padding: 12px 14px;
+      margin-bottom: 16px; border: 1.5px solid var(--border);
+    }
+    .preview-label { font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 8px; }
+    .preview-vals { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    /* BILAN TOTAL */
+    .bilan-total {
+      margin-top: 10px; padding: 9px 13px; background: var(--bg);
+      border-radius: 9px; text-align: center;
+    }
+
+    @media (max-width: 400px) {
+      .grid-4 { grid-template-columns: 1fr 1fr; }
+      .macro-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="navbar-logo">
+    <span style="font-size:20px">🥦</span>
+    <span>Ma Nutrition</span>
+  </div>
+  <div class="navbar-btns">
+    <button class="btn-nav active" id="tab-home" onclick="showPage('home')">📋</button>
+    <button class="btn-nav" id="tab-menu" onclick="showPage('menu')">🍽️ <span id="menu-count"></span></button>
+    <button class="btn-add" onclick="openAdd()">+ Ajouter</button>
+  </div>
+</div>
+
+<!-- PAGE : LISTE DES ALIMENTS -->
+<div class="page active" id="page-home">
+  <div id="saved-msg" class="alert-success" style="display:none">✅ Aliment enregistré !</div>
+
+  <input class="search-input" id="search" placeholder="🔍  Rechercher un aliment..." oninput="renderList()" />
+
+  <div class="filter-row" id="filter-row"></div>
+
+  <div class="stats-row" id="stats-row" style="display:none">
+    <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-val" id="stat-total">0</div><div class="stat-label">Aliments</div></div>
+    <div class="stat-card"><div class="stat-icon">🍽️</div><div class="stat-val" id="stat-menu">0</div><div class="stat-label">Dans le menu</div></div>
+    <div class="stat-card"><div class="stat-icon">🏷️</div><div class="stat-val" id="stat-cats">0</div><div class="stat-label">Catégories</div></div>
+  </div>
+
+  <div id="food-list"></div>
+</div>
+
+<!-- PAGE : DETAIL -->
+<div class="page" id="page-detail">
+  <button onclick="showPage('home')" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;margin-bottom:14px;padding:0;font-family:Georgia,serif">← Retour</button>
+  <div id="detail-content"></div>
+</div>
+
+<!-- PAGE : FORMULAIRE -->
+<div class="page" id="page-add">
+  <button onclick="cancelForm()" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;margin-bottom:14px;padding:0;font-family:Georgia,serif">← Retour</button>
+  <h2 id="form-title" style="font-size:19px;font-weight:700;color:var(--ink);margin-bottom:18px">➕ Nouvel aliment</h2>
+
+  <div class="card">
+    <div style="padding:20px">
+      <p class="section-title">Informations générales</p>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Nom du produit <span style="color:var(--warn)">*</span></label><input class="form-input" id="f-nom" placeholder="ex: Yaourt nature" oninput="updatePreview()" /></div>
+        <div class="form-group"><label class="form-label">Marque (optionnel)</label><input class="form-input" id="f-marque" placeholder="ex: Danone" /></div>
+      </div>
+      <div class="grid-3">
+        <div class="form-group"><label class="form-label">Catégorie</label>
+          <select class="form-select" id="f-categorie">
+            <option>Fruits</option><option>Légumes</option><option>Viandes</option>
+            <option>Poissons</option><option>Céréales</option><option>Produits laitiers</option>
+            <option>Légumineuses</option><option>Matières grasses</option>
+            <option>Sucreries</option><option>Boissons</option><option selected>Autre</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Portion</label><input class="form-input" id="f-portion" type="number" placeholder="100" value="100" /></div>
+        <div class="form-group"><label class="form-label">Unité</label>
+          <select class="form-select" id="f-unite"><option>g</option><option>ml</option><option>cl</option><option>oz</option></select>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <p class="section-title">Valeurs nutritionnelles (pour la portion indiquée)</p>
+
+      <div class="grid-3">
+        <div class="form-group"><label class="form-label">Calories (kcal) <span style="color:var(--warn)">*</span></label><input class="form-input" id="f-calories" type="number" placeholder="0" oninput="updatePreview()" /></div>
+        <div class="form-group"><label class="form-label">Protéines (g)</label><input class="form-input" id="f-proteines" type="number" placeholder="0" oninput="updatePreview()" /></div>
+        <div class="form-group"><label class="form-label">Glucides (g)</label><input class="form-input" id="f-glucides" type="number" placeholder="0" oninput="updatePreview()" /></div>
+      </div>
+      <div class="grid-4">
+        <div class="form-group"><label class="form-label">Lipides (g)</label><input class="form-input" id="f-lipides" type="number" placeholder="0" oninput="updatePreview()" /></div>
+        <div class="form-group"><label class="form-label">Fibres (g)</label><input class="form-input" id="f-fibres" type="number" placeholder="0" oninput="updatePreview()" /></div>
+        <div class="form-group"><label class="form-label">Sucres (g)</label><input class="form-input" id="f-sucres" type="number" placeholder="0" /></div>
+        <div class="form-group"><label class="form-label">Sel (g)</label><input class="form-input" id="f-sel" type="number" placeholder="0" /></div>
+      </div>
+
+      <div class="preview-box" id="preview-box" style="display:none">
+        <div class="preview-label">Aperçu</div>
+        <div class="preview-vals" id="preview-vals"></div>
+      </div>
+
+      <div style="display:flex;gap:9px">
+        <button class="btn-primary" id="btn-submit" onclick="submitFood()">✅ Enregistrer</button>
+        <button class="btn-secondary" onclick="cancelForm()">Annuler</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE : MENU -->
+<div class="page" id="page-menu">
+  <h2 style="font-size:19px;font-weight:700;color:var(--ink);margin-bottom:16px">🍽️ Mon Menu du Jour</h2>
+  <div id="menu-bilan"></div>
+  <div id="menu-list"></div>
+</div>
+
+<script>
+// ── Data ───────────────────────────────────────────────────────────────────
+const MACROS = [
+  { key:"calories",  label:"Calories",  unit:"kcal", color:"#e76f51", goal:2000 },
+  { key:"proteines", label:"Protéines", unit:"g",    color:"#2d6a4f", goal:50   },
+  { key:"glucides",  label:"Glucides",  unit:"g",    color:"#c9a84c", goal:260  },
+  { key:"lipides",   label:"Lipides",   unit:"g",    color:"#8b5cf6", goal:70   },
+  { key:"fibres",    label:"Fibres",    unit:"g",    color:"#0891b2", goal:30   },
+];
+const EXTRA = [
+  { key:"sel",    label:"Sel",    unit:"g", color:"#9a9080" },
+  { key:"sucres", label:"Sucres", unit:"g", color:"#f472b6" },
+];
+const CATS = ["Tout","Fruits","Légumes","Viandes","Poissons","Céréales","Produits laitiers","Légumineuses","Matières grasses","Sucreries","Boissons","Autre"];
+
+let foods = JSON.parse(localStorage.getItem("mn_foods") || "[]");
+let menu  = JSON.parse(localStorage.getItem("mn_menu")  || "[]");
+let editId = null;
+let catFilter = "Tout";
+
+function saveF() { localStorage.setItem("mn_foods", JSON.stringify(foods)); }
+function saveM() { localStorage.setItem("mn_menu",  JSON.stringify(menu));  }
+function n(v)    { return parseFloat(v) || 0; }
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".btn-nav").forEach(b => b.classList.remove("active"));
+  document.getElementById("page-" + name).classList.add("active");
+  if (name === "home") { document.getElementById("tab-home").classList.add("active"); renderList(); }
+  if (name === "menu") { document.getElementById("tab-menu").classList.add("active"); renderMenu(); }
+  updateMenuCount();
+}
+
+function updateMenuCount() {
+  const c = menu.length;
+  document.getElementById("menu-count").textContent = c > 0 ? c : "";
+  document.getElementById("stat-menu").textContent = c;
+}
+
+// ── Filters ────────────────────────────────────────────────────────────────
+function buildFilters() {
+  const row = document.getElementById("filter-row");
+  row.innerHTML = CATS.map(c =>
+    `<button class="filter-btn${c===catFilter?" active":""}" onclick="setFilter('${c}')">${c}</button>`
+  ).join("");
+}
+
+function setFilter(c) { catFilter = c; buildFilters(); renderList(); }
+
+// ── Food List ──────────────────────────────────────────────────────────────
+function renderList() {
+  buildFilters();
+  const q = (document.getElementById("search").value || "").toLowerCase();
+  const filtered = foods.filter(f => {
+    const mq = f.nom.toLowerCase().includes(q) || (f.marque||"").toLowerCase().includes(q);
+    const mc = catFilter === "Tout" || f.categorie === catFilter;
+    return mq && mc;
+  });
+
+  // stats
+  const statsRow = document.getElementById("stats-row");
+  statsRow.style.display = foods.length > 0 ? "flex" : "none";
+  document.getElementById("stat-total").textContent = foods.length;
+  document.getElementById("stat-cats").textContent = [...new Set(foods.map(f=>f.categorie))].length;
+  updateMenuCount();
+
+  const list = document.getElementById("food-list");
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty">
+      <div class="empty-icon">${foods.length===0?"📦":"🔍"}</div>
+      <p class="empty-title">${foods.length===0?"Aucun aliment enregistré":"Aucun résultat"}</p>
+      <p class="empty-sub">${foods.length===0?"Appuyez sur « + Ajouter » pour commencer":"Essayez un autre terme"}</p>
+      ${foods.length===0?`<button class="btn-primary" style="max-width:220px;margin:0 auto" onclick="openAdd()">+ Mon premier aliment</button>`:""}
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(food => `
+    <div class="food-item" onclick="showDetail('${food.id}')">
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px">
+          <span class="food-name">${food.nom}</span>
+          ${food.marque ? `<span class="food-brand">· ${food.marque}</span>` : ""}
+          <span class="tag">${food.categorie}</span>
+        </div>
+        <div class="food-macros">
+          ${MACROS.map(m=>`<span class="macro-val"><b style="color:${m.color}">${food[m.key]}</b><span style="color:var(--muted)">${m.unit}</span></span>`).join("")}
+          <span style="font-size:11px;color:var(--muted)">/${food.portion}${food.unite}</span>
+        </div>
+      </div>
+      <button class="btn-icon btn-menu" onclick="event.stopPropagation();addToMenu('${food.id}')">+ Menu</button>
+    </div>
+  `).join("");
+}
+
+// ── Detail ─────────────────────────────────────────────────────────────────
+function showDetail(id) {
+  const f = foods.find(x => x.id === id);
+  if (!f) return;
+  const content = document.getElementById("detail-content");
+  content.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <h2 style="font-size:20px;font-weight:700;color:var(--ink);margin-bottom:3px">${f.nom}</h2>
+            ${f.marque ? `<p style="font-size:13px;color:var(--muted);margin-bottom:7px">${f.marque}</p>` : ""}
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span class="tag">${f.categorie}</span>
+              <span class="tag tag-gold">Pour ${f.portion}${f.unite}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:7px">
+            <button class="btn-icon btn-edit" onclick="startEdit('${f.id}')">✏️</button>
+            <button class="btn-icon btn-delete" onclick="deleteFood('${f.id}')">🗑️</button>
+          </div>
+        </div>
+      </div>
+      <div style="padding:18px 18px">
+        <p class="section-title" style="margin-bottom:10px">Valeurs nutritionnelles</p>
+        <div class="macro-grid">
+          ${[...MACROS,...EXTRA].map(m=>`
+            <div class="macro-card" style="border-color:${m.color}">
+              <div class="macro-card-label">${m.label}</div>
+              <div class="macro-card-val" style="color:${m.color}">${f[m.key]||0}<span class="macro-card-unit">${m.unit}</span></div>
+            </div>
+          `).join("")}
+        </div>
+        <button class="btn-primary" onclick="addToMenu('${f.id}');showPage('menu')">Ajouter au menu</button>
+      </div>
+    </div>
+  `;
+  showPage("detail");
+}
+
+// ── Add / Edit ─────────────────────────────────────────────────────────────
+function openAdd() {
+  editId = null;
+  document.getElementById("form-title").textContent = "➕ Nouvel aliment";
+  document.getElementById("btn-submit").textContent = "✅ Enregistrer";
+  ["nom","marque","calories","proteines","glucides","lipides","fibres","sucres","sel"].forEach(k => {
+    document.getElementById("f-"+k).value = "";
+  });
+  document.getElementById("f-portion").value = "100";
+  document.getElementById("f-categorie").value = "Autre";
+  document.getElementById("f-unite").value = "g";
+  document.getElementById("preview-box").style.display = "none";
+  showPage("add");
+}
+
+function startEdit(id) {
+  const f = foods.find(x => x.id === id);
+  if (!f) return;
+  editId = id;
+  document.getElementById("form-title").textContent = "✏️ Modifier l'aliment";
+  document.getElementById("btn-submit").textContent = "💾 Enregistrer";
+  document.getElementById("f-nom").value = f.nom;
+  document.getElementById("f-marque").value = f.marque || "";
+  document.getElementById("f-categorie").value = f.categorie;
+  document.getElementById("f-portion").value = f.portion;
+  document.getElementById("f-unite").value = f.unite;
+  document.getElementById("f-calories").value = f.calories;
+  document.getElementById("f-proteines").value = f.proteines;
+  document.getElementById("f-glucides").value = f.glucides;
+  document.getElementById("f-lipides").value = f.lipides;
+  document.getElementById("f-fibres").value = f.fibres;
+  document.getElementById("f-sucres").value = f.sucres || 0;
+  document.getElementById("f-sel").value = f.sel || 0;
+  updatePreview();
+  showPage("add");
+}
+
+function cancelForm() { editId = null; showPage("home"); }
+
+function updatePreview() {
+  const cal = document.getElementById("f-calories").value;
+  const box = document.getElementById("preview-box");
+  if (!cal) { box.style.display = "none"; return; }
+  box.style.display = "block";
+  document.getElementById("preview-vals").innerHTML = MACROS.map(m =>
+    `<span style="font-size:12px"><b style="color:${m.color}">${n(document.getElementById("f-"+m.key).value)}</b><span style="color:var(--muted)"> ${m.unit}</span></span>`
+  ).join("");
+}
+
+function submitFood() {
+  const nom = document.getElementById("f-nom").value.trim();
+  const cal = document.getElementById("f-calories").value;
+  if (!nom || !cal) return;
+  const food = {
+    id: editId || Date.now().toString(),
+    nom, marque: document.getElementById("f-marque").value.trim(),
+    categorie: document.getElementById("f-categorie").value,
+    portion: n(document.getElementById("f-portion").value) || 100,
+    unite: document.getElementById("f-unite").value,
+    calories:  n(cal),
+    proteines: n(document.getElementById("f-proteines").value),
+    glucides:  n(document.getElementById("f-glucides").value),
+    lipides:   n(document.getElementById("f-lipides").value),
+    fibres:    n(document.getElementById("f-fibres").value),
+    sucres:    n(document.getElementById("f-sucres").value),
+    sel:       n(document.getElementById("f-sel").value),
+  };
+  if (editId) {
+    foods = foods.map(f => f.id === editId ? food : f);
+  } else {
+    foods.push(food);
+  }
+  saveF(); editId = null;
+  showPage("home");
+  const msg = document.getElementById("saved-msg");
+  msg.style.display = "block"; setTimeout(() => msg.style.display = "none", 2000);
+}
+
+function deleteFood(id) {
+  if (!confirm("Supprimer cet aliment ?")) return;
+  foods = foods.filter(f => f.id !== id);
+  menu  = menu.filter(m => m.foodId !== id);
+  saveF(); saveM(); showPage("home");
+}
+
+// ── Menu ───────────────────────────────────────────────────────────────────
+function addToMenu(foodId) {
+  const food = foods.find(f => f.id === foodId);
+  if (!food) return;
+  menu.push({ id: Date.now().toString(), foodId, qty: food.portion });
+  saveM(); updateMenuCount();
+}
+
+function removeFromMenu(id) {
+  menu = menu.filter(m => m.id !== id);
+  saveM(); renderMenu();
+}
+
+function updateMenuQty(id, val) {
+  menu = menu.map(m => m.id === id ? {...m, qty: Math.max(1, parseInt(val)||1)} : m);
+  saveM(); renderMenu();
+}
+
+function renderMenu() {
+  updateMenuCount();
+  const items = menu.map(m => ({...m, food: foods.find(f=>f.id===m.foodId)})).filter(m=>m.food);
+
+  // Totals
+  const totals = {};
+  MACROS.forEach(mx => totals[mx.key] = 0);
+  items.forEach(item => {
+    const f = item.qty / item.food.portion;
+    MACROS.forEach(mx => { totals[mx.key] += item.food[mx.key] * f; });
+  });
+
+  // Bilan
+  const bilan = document.getElementById("menu-bilan");
+  if (items.length > 0) {
+    const over = totals.calories > 2000;
+    bilan.innerHTML = `
+      <div class="card" style="margin-bottom:16px">
+        <div style="padding:16px 18px">
+          <p class="section-title" style="margin-bottom:12px">Bilan · Objectifs journaliers</p>
+          ${MACROS.map(m => {
+            const pct = Math.min((totals[m.key]/m.goal)*100, 100);
+            const isOver = totals[m.key] > m.goal;
+            return `<div class="macro-bar">
+              <div class="macro-bar-header">
+                <span class="macro-bar-label">${m.label}</span>
+                <span class="macro-bar-val" style="color:${isOver?'var(--warn)':m.color}"><b>${Math.round(totals[m.key])}</b> / ${m.goal} ${m.unit}</span>
+              </div>
+              <div class="macro-bar-track"><div class="macro-bar-fill" style="width:${pct}%;background:${isOver?'var(--warn)':m.color}"></div></div>
+            </div>`;
+          }).join("")}
+          <div class="bilan-total">
+            <span style="font-size:17px;font-weight:700;color:var(--warn)">${Math.round(totals.calories)}</span>
+            <span style="font-size:12px;color:var(--muted)"> kcal · </span>
+            <span style="font-size:12px;color:${over?'var(--warn)':'var(--accent)'}">
+              ${over ? `+${Math.round(totals.calories-2000)} kcal au-dessus` : `${2000-Math.round(totals.calories)} kcal restantes`}
+            </span>
+          </div>
+        </div>
+      </div>`;
+  } else {
+    bilan.innerHTML = "";
+  }
+
+  // List
+  const list = document.getElementById("menu-list");
+  if (items.length === 0) {
+    list.innerHTML = `<div class="empty">
+      <div class="empty-icon">🍽️</div>
+      <p class="empty-title">Le menu est vide</p>
+      <p class="empty-sub">Ajoutez des aliments depuis votre liste</p>
+      <button class="btn-primary" style="max-width:220px;margin:0 auto" onclick="showPage('home')">📋 Voir mes aliments</button>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = items.map(item => {
+    const f = item.qty / item.food.portion;
+    return `
+      <div class="menu-item">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px">
+            <span class="food-name">${item.food.nom}</span>
+            ${item.food.marque ? `<span class="food-brand">${item.food.marque}</span>` : ""}
+          </div>
+          <div class="food-macros">
+            ${MACROS.map(m=>`<span class="macro-val"><b style="color:${m.color}">${(item.food[m.key]*f).toFixed(1)}</b><span style="color:var(--muted)">${m.unit}</span></span>`).join("")}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input class="menu-qty" type="number" value="${item.qty}" onchange="updateMenuQty('${item.id}',this.value)" />
+          <span style="font-size:11px;color:var(--muted)">${item.food.unite}</span>
+          <button class="btn-icon btn-delete" style="padding:6px 10px" onclick="removeFromMenu('${item.id}')">✕</button>
+        </div>
+      </div>`;
+  }).join("") + `
+    <button onclick="menu=[];saveM();renderMenu()" style="width:100%;background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:10px;padding:10px;cursor:pointer;font-size:13px;font-family:Georgia,serif;margin-top:4px">
+      🗑️ Vider le menu
+    </button>`;
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+renderList();
+updateMenuCount();
+</script>
+</body>
+</html>
